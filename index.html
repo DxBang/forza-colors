@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<title>Bang.Systems - Forza Color Converter v1.2</title>
+<meta charset="UTF-8">
+<meta name="keywords" content="forza,motorsport,horizon,color,converter,hex,image,rgb,hsb"/>
+<meta name="description" content="Color Converter for Forza Motorsport/Horizon"/>
+<meta name="theme-color" content="#666"/>
+<meta name="msapplication-navbutton-color" content="#666"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="#666"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="index,follow,nosnippet,noarchive,nocache,noimageindex"/>
+<link rel="canonical" href="https://bang.systems/forza-color/"/>
+<link rel="author" href="https://x.com/DxBang3D"/>
+<link rel="publisher" href="https://x.com/BangSystems"/>
+<meta name="twitter:creator" content="@DxBang3D"/>
+<meta name="twitter:site" content="@BangSystems"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:url" content="https://bang.systems/forza-color/"/>
+<meta name="twitter:image0" content="demo.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Bang.Systems"/>
+<meta property="og:url" content="https://bang.systems/forza-color/"/>
+<meta property="og:title" content=""/>
+<meta property="og:description" content="Color Converter for Forza Motorsport/Horizon"/>
+<meta property="og:image" content="demo.jpg"/>
+<link rel="image_src" type="image/jpeg" href="demo.jpg"/>
+<style>
+:root {
+	--gap: .25rem;
+	--round: .25rem;
+	--l: 0.6;
+	--c: 0.07;
+	--h: 251.56;
+	--accent: oklch(var(--l) var(--c) var(--h));
+	--accent-hover: oklch(calc(var(--l) * 1.1) var(--c) var(--h));
+	--accent-active: oklch(calc(var(--l) * 1.2) var(--c) var(--h));
+	--text: oklch(calc(var(--l) * 1.2) 0 0);
+	--faded: oklch(calc(var(--l) * 0.9) 0 0);
+	--border: var(--faded) solid 1px;
+}
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+	background-color: oklch(calc(var(--l) * 0.2) 0 0);
+}
+::-webkit-scrollbar-thumb {
+	background-color: var(--accent);
+	border-radius: var(--round);
+}
+::-webkit-scrollbar-thumb:hover {
+	background-color: var(--accent-hover);
+}
+::-webkit-scrollbar-thumb:active {
+	background-color: var(--accent-active);
+}
+::placeholder {
+	color: var(--faded);
+}
+::-moz-focus-inner {
+	border: 0;
+}
+:focus {
+	outline: none;
+}
+
+*,
+*:before,
+*:after {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: sans-serif;
+	font-size: clamp(.5rem, 2vw, 1rem);
+	line-height: 1;
+	margin: 0;
+	padding: 0;
+	background-color: oklch(calc(var(--l) * 0.05) 0 0);
+	color: var(--text);
+	overflow: hidden scroll;
+	& > * {
+		background-color: oklch(calc(var(--l) * 0.3) 0 0);
+	}
+	& header {
+		background-color: oklch(calc(var(--l) * 0.4) var(--c) var(--h));
+		color: oklch(calc(var(--l) * 1.2) var(--c) var(--h));
+		text-align: center;
+		padding: .5rem 1rem;
+	}
+}
+h1 {
+	font-size: clamp(.5rem, 2vw, 1.5rem);
+	padding: 0;
+	margin: 0;
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+a:hover,
+a:focus {
+	color: var(--accent-hover);
+	text-decoration: underline;
+}
+a:active {
+	color: var(--accent-active);
+}
+
+main {
+	display: grid;
+	grid-template-columns: auto 20rem;
+	gap: var(--gap);
+	& > * {
+		background-color: oklch(calc(var(--l) * 0.25) 0 0);
+		border-radius: var(--round);
+	}
+	& .stored {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: var(--gap);
+		& #colors {
+			display: flex;
+			flex-wrap: wrap;
+			padding: 0 1rem;
+			gap: var(--gap);
+			& canvas {
+				border: var(--border);
+				border-radius: var(--round);
+			}
+		}
+	}
+}
+
+dl.result {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: var(--gap);
+	padding: 0 1rem;
+	& > dt {
+		font-weight: bold;
+	}
+	& > dd {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--gap);
+	}
+	& .frz {
+		font-weight: bold;
+	}
+	output {
+		font-family: monospace;
+		font-size: 1.2rem;
+		text-align: right;
+	}
+}
+
+.picture {
+	position: relative;
+	align-self: center;
+	& #image,
+	& #canvas {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	& #canvas {
+		position: absolute;
+		top: 0;
+		left: 0;
+		cursor: crosshair;
+	}
+	& #magnify {
+		position: absolute;
+		top: 0;
+		left: 0;
+		display: none;
+	}
+}
+
+.current {
+	display: flex;
+	position: relative;
+	gap: var(--gap);
+	& label {
+		position: relative;
+		width: 50px;
+		height: 50px;
+		border: var(--accent) solid calc(var(--gap) * 2);
+		border-radius: var(--round);
+		cursor: pointer;
+		text-align: center;
+		line-height: 2.2;
+		font-size: 1rem;
+	}
+	& input {
+		position: absolute;
+		appearance: none;
+		cursor: pointer;
+		top: 4rem;
+		height: 0;
+		width: 0;
+		opacity: 0;
+		z-index: -1;
+	}
+}
+
+.capture {
+	position: relative;
+	& canvas {
+		width: 50px;
+		height: 50px;
+		border: var(--border);
+		border-radius: var(--round);
+	}
+}
+
+#magnify {
+	display: none;
+	position: absolute;
+	z-index: 2;
+	width: 200px;
+	height: 200px;
+	border: 1px solid #000;
+	box-shadow: 5px 5px 10px #000;
+}
+
+</style>
+<script src="fcc.js">
+
+</script>
+</head>
+<body>
+<header>
+	<h1>Bang.Systems - Forza Color Converter v1.2</h1>
+</header>
+<main>
+	<div class="picture">
+		<img id="image" src="female.png" width="640" height="480"/>
+		<canvas id="canvas" width="640" height="480"></canvas>
+		<canvas id="magnify" width="200" height="200"></canvas>
+	</div>
+	<div class="calculation">
+		<p>Click anywhere on the image to capture that pixel and convert the color to <q>Forza Color</q>.</p>
+		<dl class="result">
+			<dt class="hex">Hex</dt>
+			<dd class="hex">
+				<output id="hex">hex</output>
+			</dd>
+			<dt class="rgb">RGB</dt>
+			<dd class="rgb">
+				<output id="rgb_r">r</output>
+				<output id="rgb_g">g</output>
+				<output id="rgb_b">b</output>
+			</dd>
+			<dt class="hsl">HSL</dt>
+			<dd class="hsl">
+				<output id="hsl_h">h</output>
+				<output id="hsl_s">s</output>
+				<output id="hsl_l">l</output>
+			</dd>
+			<dt class="hsb">HSB</dt>
+			<dd class="hsb">
+				<output id="hsb_h">h</output>
+				<output id="hsb_s">s</output>
+				<output id="hsb_b">b</output>
+			</dd>
+			<dt class="frz">Forza</dt>
+			<dd class="frz">
+				<output id="forza_h">h</output>
+				<output id="forza_s">s</output>
+				<output id="forza_b">b</output>
+			</dd>
+		</dl>
+		<div class="current">
+			<label for="color" id="color-preview" title="Show current color"></label>
+			<input type="color" id="color" value="#808080"/>
+			<label for="file" title="Load image file">IMG</label>
+			<input type="file" id="file" accept=".jpg, .jpeg, .png, .gif"/>
+			<label id="pixel-preview" title="Pixel size, use SHIFT+MouseScroll to adjust">1</label>
+		</div>
+		<div class="capture">
+			<canvas id="capture" width="50" height="50"></canvas>
+		</div>
+		<div class="hints">
+			<p>Copy/paste an image into the canvas or load it from the IMG button.</p>
+			<p>Click anywhere on the picture to capture the color, if pixel size is larger than 1, it will calculate the average color.</p>
+			<p>Use SHIFT+MouseScroll to adjust the average pixel size.</p>
+		</div>
+	</div>
+	<div class="stored">
+		<p>[[[UPCOMING FEATURE]]]</p>
+		<div id="colors">
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+			<canvas width="50" height="50"></canvas>
+		</div>
+	</div>
+</main>
+
+<footer>
+	<details>
+		<summary>About</summary>
+		<p>
+			Added "Paste-Feature" by request from LanceMuscles from the <a href="https://github.com/forza-painter/forza-painter" rel="follow" target="_blank">Forza-Painter Discord server</a>.
+			Seriously check out that tool!!
+		</p>
+		<p>The image isn't uploaded to the server, but simply applied on the client-side.</p>
+		<p>
+			Support at <a href="https://forums.forza.net/t/forza-color-converter-online-tool/545126" target="_blank" rel="me noopener noreferrer">Forza Motorsport Forums</a>,
+			<a href="https://www.reddit.com/r/forza/comments/u004si/forza_color_converter/" target="_blank" rel="me noopener noreferrer">/r/forza</a>,
+			<a href="https://twitter.com/DxBang3D/status/1512873349252190209" target="_blank" rel="me noopener noreferrer">Twitter</a>,
+			or <a href="https://discord.com/users/152588151314055168" target="_blank" rel="me noopener noreferrer">DxBang#6840</a> on discord.
+		</p>
+		<h2 id="changelog">Change Log</h2>
+		<dl>
+			<dt>1.2</dt>
+			<dd>Added support for average color of pixels in the captured section.</dd>
+			<dd>Reworked the interface.</dd>
+		</dl>
+		<dl>
+			<dt>1.1</dt>
+			<dd>Added support for image paste.</dd>
+		</dl>
+		<dl>
+			<dt>1.0</dt>
+			<dd>First release.</dd>
+		</dl>
+		<h2 id="future">Future Plans</h2>
+		<dl>
+			<dt>Average Color</dt>
+			<dd>Calculate the average color of an area (1x1 to 16x16) which can be selected via the Shift+MouseScroll.</dd>
+			<dd>Calculate the average of up to 4 colors selected with Ctrl+Click.</dd>
+			<dt>Store Colors</dt>
+			<dd>Store up to 16 colors in a list.</dd>
+			<dt>Copy Colors</dt>
+			<dd>Buttons to copy the color to the clipboard.</dd>
+			<dt>Drop Image</dt>
+			<dd>Drop an image onto the page to load it.</dd>
+		</dl>
+	</details>
+	<div>Copyright &copy; 2022 - <?= date('Y') ?> <a href="https://bang.systems" target="_blank">Bang.Systems</a>.</div>
+</footer>
+</body>
+</html>
