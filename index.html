@@ -113,6 +113,13 @@ main {
 	}
 }
 
+.calculation {
+	position: sticky;
+	top: var(--gap);
+	align-self: start;
+	height: fit-content;
+}
+
 .picture {
 	position: relative;
 	align-self: center;
@@ -145,8 +152,6 @@ main {
 	flex-direction: column;
 	grid-column: 1 / -1;
 	place-content: center;
-
-
 	#colors {
 		display: flex;
 		flex-wrap: wrap;
@@ -169,8 +174,6 @@ main {
 			"stored";
 	}
 }
-
-
 
 h1 {
 	font-size: 1.4rem;
@@ -198,7 +201,6 @@ dl.result {
 	padding: 0 1rem;
 	dt, dd {
 		padding: 0;
-
 	}
 	dt {
 		font-weight: bold;
@@ -209,9 +211,11 @@ dl.result {
 		grid-template-columns: repeat(3, 1fr);
 		gap: var(--gap);
 		margin: 0 0 0 var(--gap);
+		color: var(--faded)
 	}
 	.frz {
 		font-weight: bold;
+		color: var(--text);
 	}
 	output {
 		font-family: monospace;
@@ -278,7 +282,6 @@ dl.result {
 		width: var(--_box-size);
 		height: var(--_box-size);
 		aspect-ratio: 1 / 1;
-
 		#capture,
 		#pixel-preview {
 			border: var(--border);
