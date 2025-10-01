@@ -1,10 +1,11 @@
-'use strict';
+"use strict";
 let canvas,
 	magnify,
-	ctx, mtx, timer, file, image, color, colorPreview,
+	ctx, mtx, timer, file, image, currentColor, colorPreview,
 	pixel = 4,
 	pixelPreview,
-	captureCanvas;
+	captureCanvas,
+	historyColors = [];
 
 const rgbToHex = (r,g,b) => {
 	return ((r << 16) | (g << 8) | b).toString(16);
@@ -112,12 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	magnify = document.getElementById('magnify');
 	image = document.getElementById('image');
 	file = document.getElementById('file');
-	color = document.getElementById('color');
+	currentColor = document.getElementById('current-color');
 	colorPreview = document.getElementById('color-preview');
 	ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: true });
 	mtx = magnify.getContext('2d', { alpha: true, willReadFrequently: true });
 	pixelPreview = document.getElementById('pixel-preview');
 	captureCanvas = document.getElementById('capture'); // capture canvas
+	const colorsContainer = document.getElementById('colors');
 
 	pixelPreview.textContent = pixel;
 
@@ -127,8 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 	loadCanvas();
 
-	color.addEventListener('input', () => {
-		let hex = color.value,
+	const updateOutputsFromHex = (hex) => {
+		let
 			rgb = hexToRgb(hex),
 			hsl = rgbToHSL(rgb.r, rgb.g, rgb.b),
 			hsb = rgbToHSB(rgb.r, rgb.g, rgb.b),
@@ -153,7 +155,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		document.getElementById('forza_h').textContent = fhsb.h.toFixed(2);
 		document.getElementById('forza_s').textContent = fhsb.s.toFixed(2);
 		document.getElementById('forza_b').textContent = fhsb.b.toFixed(2);
-		// console.log('color', hex, rgb, hsl, hsb, fhsb);
+	};
+
+	currentColor.addEventListener('input', () => {
+		const hex = currentColor.value;
+		updateOutputsFromHex(hex);
 	});
 	file.addEventListener('change', (e) => {
 		let tgt = e.target || window.event.srcElement,
@@ -168,16 +174,18 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	});
 
+	// On click: set current-color from the hover/preview color and push to history
 	canvas.addEventListener('click', e => {
-		let
-			sx = e.offsetX,
+		let sx = e.offsetX,
 			sy = e.offsetY,
 			avgColor = averagePixelColor(sx, sy, pixel, true),
 			hx = '#' + ('000000' + rgbToHex(avgColor.r, avgColor.g, avgColor.b)).slice(-6);
-			// px = ctx.getImageData(sx, sy, 1, 1),
-			// hx = '#' + ('000000' + rgbToHex(px.data[0], px.data[1], px.data[2])).slice(-6);
-		color.value = hx;
-		color.dispatchEvent(new Event('input'));
+		currentColor.value = hx;
+		currentColor.dispatchEvent(new Event('input'));
+		// Add to history (top of stack), keep unique consecutive entries minimal
+		historyColors.unshift(hx);
+		paintHistory();
+		saveHistory();
 	});
 	canvas.addEventListener('mousemove', e => {
 		let
@@ -187,8 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
 			hx = '#' + ('000000' + rgbToHex(avgColor.r, avgColor.g, avgColor.b)).slice(-6);
 			// px = ctx.getImageData(sx, sy, 1, 1),
 			// hx = '#' + ('000000' + rgbToHex(px.data[0], px.data[1], px.data[2])).slice(-6);
-		color.value = hx;
-		colorPreview.style.borderColor = hx;
+	// Hover: only update preview, not current color
+	colorPreview.style.borderColor = hx;
+	// colorPreview.style.backgroundColor = hx;
 
 		mtx.fillStyle = 'black';
 		mtx.fillRect(0, 0, magnify.width, magnify.height);
@@ -267,6 +276,59 @@ document.addEventListener('DOMContentLoaded', () => {
 	window.addEventListener('resize', () => {
 		clearTimeout(timer);
 		timer = setTimeout(loadCanvas, 200);
+	});
+
+	// History management
+	const saveHistory = () => {
+		try { localStorage.setItem('forzaHistory', JSON.stringify(historyColors)); } catch {}
+	};
+	const loadHistory = () => {
+		try { historyColors = JSON.parse(localStorage.getItem('forzaHistory') || '[]'); }
+		catch { historyColors = []; }
+	};
+	const paintHistory = () => {
+		const swatches = Array.from(colorsContainer.querySelectorAll('canvas'));
+		swatches.forEach((cv, i) => {
+			const ptx = cv.getContext('2d');
+			ptx.clearRect(0, 0, cv.width, cv.height);
+			const hex = historyColors[i];
+			if (hex) {
+				ptx.fillStyle = hex;
+				ptx.fillRect(0, 0, cv.width, cv.height);
+				ptx.strokeStyle = '#00000080';
+				ptx.strokeRect(0.5, 0.5, cv.width - 1, cv.height - 1);
+				cv.title = hex;
+			} else {
+				ptx.strokeStyle = '#6666';
+				ptx.strokeRect(0.5, 0.5, cv.width - 1, cv.height - 1);
+				cv.title = 'Empty';
+			}
+		});
+	};
+	loadHistory();
+	paintHistory();
+
+	// Left click on history: set as current color
+	colorsContainer.addEventListener('click', (e) => {
+		const cv = e.target.closest('canvas');
+		if (!cv) return;
+		const idx = Array.from(colorsContainer.querySelectorAll('canvas')).indexOf(cv);
+		const hex = historyColors[idx];
+		if (!hex) return;
+		currentColor.value = hex;
+		currentColor.dispatchEvent(new Event('input'));
+	});
+	// Right click on history: delete and reorder (compact)
+	colorsContainer.addEventListener('contextmenu', (e) => {
+		const cv = e.target.closest('canvas');
+		if (!cv) return;
+		e.preventDefault();
+		const idx = Array.from(colorsContainer.querySelectorAll('canvas')).indexOf(cv);
+		if (idx < 0) return;
+		historyColors.splice(idx, 1); // remove clicked
+		// compact (already compacted by splice) and repaint
+		saveHistory();
+		paintHistory();
 	});
 });
 
